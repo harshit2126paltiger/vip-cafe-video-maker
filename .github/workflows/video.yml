@@ -1,4 +1,4 @@
-name: Generate Video
+name: Generate VIP Café Video
 
 on:
   push:
@@ -10,42 +10,30 @@ on:
 jobs:
   create-video:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: Install FFmpeg & Python deps
+      - name: Install FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          pip install moviepy pillow
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
 
       - name: Generate video
         run: python make_video.py
-
-      - name: Check if video exists
-        run: |
-          if [ -f output_video.mp4 ]; then
-            echo "✓ Video generated successfully"
-            ls -lh output_video.mp4
-          else
-            echo "✗ Video generation failed"
-            exit 1
-          fi
 
       - name: Commit & push video
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add output_video.mp4
-          git commit -m "🎬 Auto-generated video from assets" || echo "No changes to commit"
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git commit -m "Auto-generated video [skip ci]" || echo "No changes to commit"
+          git push
